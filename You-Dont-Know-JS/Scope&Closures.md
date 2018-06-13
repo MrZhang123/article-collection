@@ -456,3 +456,109 @@ bar();
 **词法作用域是编写时的，而动态作用域（和`this`）是运行时的。词法作用域关心的是函数在何处被声明，但是动态作用域关心的是函数从何处被调用。**
 
 ### 填补块儿作用域
+
+在ES6中声明一个作用域块儿的代码如下：
+
+```js
+{
+	let a = 2;
+	console.log( a ); // 2
+}
+
+console.log( a ); // ReferenceError
+```
+
+但是，如果在ES6之前的环境中声明一个作用域块儿，则需要如下代码：
+
+```js
+try{throw 2}catch(a){
+	console.log( a ); // 2
+}
+
+console.log( a ); // ReferenceError
+```
+
+可以看到一个 `try/catch` 似乎强制抛出一个错误，但是这个它抛出的“错误”只是一个值 2。然后接收它的变量声明是在 catch(a) 子句中，`catch`子句拥有块儿作用域，这意味着它可以在ES6之前的环境中创建一个块儿作用域。
+
+事实上代码转换工具将ES6转换成ES5时候，块儿作用域就是被转换成这样的。
+
+### 词法this
+
+```js
+var obj = {
+	id: "awesome",
+	cool: function coolFn() {
+		console.log( this.id );
+	}
+};
+
+var id = "not awesome";
+
+obj.cool(); // awesome
+
+setTimeout( obj.cool, 100 ); // not awesome
+```
+
+这个问题就是在 `cool()` 函数上丢失了 `this` 绑定。有各种方法可以解决这个问题，但一个经常被重复的解决方案是 `var self = this;`。
+
+```js
+var obj = {
+	count: 0,
+	cool: function coolFn() {
+		var self = this;
+
+		if (self.count < 1) {
+			setTimeout( function timer(){
+				self.count++;
+				console.log( "awesome?" );
+			}, 100 );
+		}
+	}
+};
+
+obj.cool(); // awesome?
+```
+
+用不过于深入细节的方式讲，`var self = this` 的“解决方案”免除了理解和正确使用 this 绑定的整个问题，而是退回到我们也许感到更舒服的东西上面：词法作用域。self 变成了一个可以通过词法作用域和闭包解析的标识符，而且一直不关心 this 绑定发生了什么。
+
+ES6的解决方案，箭头函数：
+
+```js
+var obj = {
+	count: 0,
+	cool: function coolFn() {
+		if (this.count < 1) {
+			setTimeout( () => { // 箭头函数能好用？
+				this.count++;
+				console.log( "awesome?" );
+			}, 100 );
+		}
+	}
+};
+
+obj.cool(); // awesome?
+```
+
+简单的解释是，**当箭头函数遇到它们的 `this` 绑定时，它们的行为与一般的函数根本不同。它们摒弃了 `this` 绑定的所有一般规则，而是采用它们的直接外围词法作用域的 `this` 的值，无论它是什么。**
+
+于是，在这个代码段中，箭头函数不会以不可预知的方式丢掉 `this` 绑定，它只是“继承” `cool()` 函数的 `this` 绑定（如果像我们展示的那样调用它就是正确的！）。
+
+正确使用`this`机制的解决办法：
+
+```js
+var obj = {
+	count: 0,
+	cool: function coolFn() {
+		if (this.count < 1) {
+			setTimeout( function timer(){
+				this.count++; // `this` 因为 `bind(..)` 所以安全
+				console.log( "more awesome" );
+			}.bind( this ), 100 ); // 看，`bind()`!
+		}
+	}
+};
+
+obj.cool(); // more awesome
+```
+
+`bind()`方法创建一个新的函数, 当被调用时，将其`this`关键字设置为提供的值，在新函数被调用时提供的任何前面的给定序列的参数。

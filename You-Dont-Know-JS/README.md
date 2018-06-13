@@ -4,3 +4,4 @@
 
 - [入门与进阶](https://github.com/MrZhang123/article-collection/blob/master/You-Dont-Know-JS/Up%26Going.md)
 - [作用域与闭包](https://github.com/MrZhang123/article-collection/blob/master/You-Dont-Know-JS/Scope%26Closures.md)
+<!-- - [this与对象原型]() -->
