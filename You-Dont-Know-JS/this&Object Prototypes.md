@@ -143,7 +143,7 @@ baz(); // <-- `baz` 的调用点
 
 通过调用点寻找`this`指向的四条规则
 
-#### 默认绑定（Default Binding）
+#### 1.默认绑定（Default Binding）
 
 函数调用最常见的一种情况：独立函数调用，可以认为这种`this`规则是在没有其他规则适用时的 **默认规则**。
 
@@ -178,7 +178,7 @@ var a = 2;
 foo(); // TypeError: `this` is `undefined`
 ```
 
-#### 隐含绑定（Implicit Binding）
+#### 2.隐含绑定（Implicit Binding）
 
 另一种要考虑的规则是：调用点是否有一个环境对象（context object），也成为拥有者或容器对象。
 
@@ -265,6 +265,173 @@ var obj = {
 var a = 'opps, global'; // a 也是一个全局对象的属性
 deFoo(obj.foo) // "oops, global"
 ```
+
+参数传递仅仅是一种隐含的赋值，而且因为我们在传递一个函数，它是隐含的引用赋值，所以最终结果和我们签一个代码段一致。
+
+#### 3.明确绑定（Explicit Binding）
+
+可以使用`call`和`apply`进行明确的`this`绑定。它们接收的第一个参数都是一个用于`this`的对象，之后使用这个指定的`this`来调用函数。
+
+```js
+function foo() {
+	console.log(this.a)
+}
+var obj = {
+	a:2
+}
+foo.call(obj) // 2
+```
+
+通过`foo.call()`使用 *明确绑定* 来调用`foo`,允许我们强制函数的`this`指向`obj`。
+
+如果传递一个简单基本类型（`string`，`boolean`，`number`）作为`this`绑定，那么这个基本类型值会被包装在它的对象类型中（分别是`new String(...)`，`new Boolean(...)`，`new Number(...)`）。这通常称为“封箱”。
+
+>注：就`this`绑定的角度而言，`call`和`apply`是完全一样的，它们只是在处理参数的方式上不同。
+
+##### 3.1 硬绑定（Hard Binding）
+
+有一个明确绑定的变种可以实现原本的`this`不丢失。
+
+```js
+function foo() {
+	console.log( this.a );
+}
+
+var obj = {
+	a: 2
+};
+
+var bar = function() {
+	foo.call( obj );
+};
+
+bar(); // 2
+setTimeout( bar, 100 ); // 2
+
+// `bar` 将 `foo` 的 `this` 硬绑定到 `obj`
+// 所以它不可以被覆盖
+bar.call( window ); // 2
+```
+
+创建函数`bar()`在它内部手动调用`foo.call(obj)`，由此强制`this`绑定到`obj`并调用`foo`。
+
+用 *硬绑定* 将一个函数包装起来的最典型方法，是将所有传入的参数和传出的返回值创建一个通道：
+
+```js
+function foo(something) {
+	console.log( this.a, something );
+	return this.a + something;
+}
+
+var obj = {
+	a: 2
+};
+
+var bar = function() {
+	return foo.apply( obj, arguments );
+};
+
+var b = bar( 3 ); // 2 3
+console.log( b ); // 5
+```
+
+另一种表达这种模式的方法是创建一个可复用的`bind`帮助函数：
+
+```js
+function foo(something) {
+	console.log( this.a, something );
+	return this.a + something;
+}
+
+// 简单实现的 `bind` 帮助函数
+function bind(fn, obj) {
+	return function() {
+		return fn.apply( obj, arguments );
+	};
+}
+
+var obj = {
+	a: 2
+};
+
+var bar = bind( foo, obj );
+
+var b = bar( 3 ); // 2 3
+console.log( b ); // 5
+```
+
+由于 *硬绑定* 是一个如此常用的模式，因此ES5的内奸工具提供：`Function.prototype.bind`来硬绑定`this`。
+
+`bind(...)`返回一个硬编码的新函数，它使用你指定的`this`环境来调用原本的函数。
+
+>注：在ES6中，`bind(...)`生成的硬绑定函数有一个名为`.name`的属性，它源自原始的 *目标函数（target function）*。举例来说：`bar = foo.bind(..)` 应该会有一个 `bar.name` 属性，它的值为 `"bound foo"`，这个值应当会显示在调用栈轨迹的函数调用名称中。
+
+##### 3.2 API调用“环境”
+
+许多库中的函数和许多在js语言以及宿主环境中的内建函数，都提供一个可选参数，通常称为“环境（context）”，这种设计作为一种替代方案来确保回调函数使用特定的`this`而不必非得使用`bind(...)`。
+
+```js
+function foo(el) {
+	console.log( el, this.id );
+}
+
+var obj = {
+	id: "awesome"
+};
+
+// 使用 `obj` 作为 `this` 来调用 `foo(..)`
+[1, 2, 3].forEach( foo, obj ); // 1 awesome  2 awesome  3 awesome
+```
+
+**forEach的参数如下：** 
+
+`callback`：为数组中每个元素执行的函数，该函数接受三个参数：
+
+1. `currentValue`（当前值）：数组中正在处理的当前元素
+2. `index`（索引）：数组中正在处理的当前元素的索引
+3. `array`：`forEach()`方法正在操作的数组
+
+`thisArg`（可选）：可选参数，当前执行回调函数时用做`this`的值。
+
+#### 4.`new`绑定（`new` Binding）
+
+在传统的面向对象类语言中，“构造器”是附着在类上的一种特殊方法，当使用`new`操作符来初始化一个类时，这个类的构造器（constructor）就会被调用。
+
+在js中，构造器 **仅仅是一个函数**，它们偶然地与前置的 `new` 操作符一起调用。它们不依附于类，它们也不初始化一个类。它们甚至不是一种特殊的函数类型。它们本质上只是一般的函数，在被使用 `new` 来调用时改变了行为。
+
+<span style="color: red">**可以说任何函数，都可以在前面加上`new`来被调用，这使函数调用称为一个 构造其调用（constructor call）**。这是一个重要而微妙的区别：实际上不存在“构造器函数”这样的东西，而只有函数的构造器调用。</span>
+
+<span style="color: red">
+当在函数前面加入`new`调用时，也就是构造器调用时，下面这些事情会自动完成：
+
+1. 一个全新的对象会凭空创建（就是被构建）
+2. 这个新构建的对象会被接入原型链（`[[Prototype]]`-linked）
+3. 这个新构建的对象被设置为函数调用的`this`绑定
+4. 除非函数返回一个它自己的其他 **对象**，否则这被 `new` 调用的函数将 *自动* 返回这个新构建的对象
+
+也就是说：
+
+以new操作符调用构造函数会经历以下四个步骤
+
+1. 创建一个新对象
+2. 将构造函数的作用域赋给新对象（因此this就指向这个新对象）
+3. 执行构造函数中的代码（为这个新对象添加属性）
+4. 返回新对象
+</span>
+
+```js
+function foo(a) {
+	this.a = a;
+}
+var bar = new foo( 2 );
+console.log( bar.a ); // 2
+```
+
+
+### 一切皆有顺序
+
+
+
 
 
 
