@@ -10,20 +10,20 @@
 
 ```js
 function foo(num) {
-	console.log( "foo: " + num );
+  console.log('foo: ' + num)
 
-	// 追踪 `foo` 被调用了多少次
-	this.count++;
+  // 追踪 `foo` 被调用了多少次
+  this.count++
 }
 
-foo.count = 0;
+foo.count = 0
 
-var i;
+var i
 
-for (i=0; i<10; i++) {
-	if (i > 5) {
-		foo( i );
-	}
+for (i = 0; i < 10; i++) {
+  if (i > 5) {
+    foo(i)
+  }
 }
 // foo: 6
 // foo: 7
@@ -31,7 +31,7 @@ for (i=0; i<10; i++) {
 // foo: 9
 
 // `foo` 被调用了多少次？
-console.log( foo.count ); // 0 ????
+console.log(foo.count) // 0 ????
 ```
 
 当执行`foo.count = 0`时，它确实向`foo`添加一个`count`属性，但是对于内部函数`this`指向根本 **不是指向函数本身，而是指向全局的**。
@@ -42,22 +42,22 @@ console.log( foo.count ); // 0 ????
 
 ```js
 function foo(num) {
-	console.log( "foo: " + num );
+  console.log('foo: ' + num)
 
-	// 追踪 `foo` 被调用了多少次
-	// 注意：由于 `foo` 的被调用方式（见下方），`this` 现在确实是 `foo`
-	this.count++;
+  // 追踪 `foo` 被调用了多少次
+  // 注意：由于 `foo` 的被调用方式（见下方），`this` 现在确实是 `foo`
+  this.count++
 }
 
-foo.count = 0;
+foo.count = 0
 
-var i;
+var i
 
-for (i=0; i<10; i++) {
-	if (i > 5) {
-		// 使用 `call(..)`，我们可以保证 `this` 指向函数对象(`foo`)
-		foo.call( foo, i );
-	}
+for (i = 0; i < 10; i++) {
+  if (i > 5) {
+    // 使用 `call(..)`，我们可以保证 `this` 指向函数对象(`foo`)
+    foo.call(foo, i)
+  }
 }
 // foo: 6
 // foo: 7
@@ -65,11 +65,10 @@ for (i=0; i<10; i++) {
 // foo: 9
 
 // `foo` 被调用了多少次？
-console.log( foo.count ); // 4
+console.log(foo.count) // 4
 ```
 
 在循环调用中，使用`call`手动将`this`指向`foo`本身
-
 
 #### 它的作用域
 
@@ -79,15 +78,15 @@ console.log( foo.count ); // 4
 
 ```js
 function foo() {
-	var a = 2;
-	this.bar();
+  var a = 2
+  this.bar()
 }
 
 function bar() {
-	console.log( this.a );
+  console.log(this.a)
 }
 
-foo(); //undefined
+foo() //undefined
 ```
 
 以上代码希望通过`this`在`bar()`和`foo()`的词法作用域之间建立一座桥，使得`bar()`可以访问`foo()`内部的`a`，这是不可能做到的，不能使用 `this` 引用在词法作用域中查找东西。
@@ -110,34 +109,34 @@ foo(); //undefined
 
 ```js
 function baz() {
-    // 调用栈是: `baz`
-    // 我们的调用点是 global scope（全局作用域）
+  // 调用栈是: `baz`
+  // 我们的调用点是 global scope（全局作用域）
 
-    console.log( "baz" );
-    bar(); // <-- `bar` 的调用点
+  console.log('baz')
+  bar() // <-- `bar` 的调用点
 }
 
 function bar() {
-    // 调用栈是: `baz` -> `bar`
-    // 我们的调用点位于 `baz`
+  // 调用栈是: `baz` -> `bar`
+  // 我们的调用点位于 `baz`
 
-    console.log( "bar" );
-    foo(); // <-- `foo` 的 call-site
+  console.log('bar')
+  foo() // <-- `foo` 的 call-site
 }
 
 function foo() {
-    // 调用栈是: `baz` -> `bar` -> `foo`
-    // 我们的调用点位于 `bar`
+  // 调用栈是: `baz` -> `bar` -> `foo`
+  // 我们的调用点位于 `bar`
 
-    console.log( "foo" );
+  console.log('foo')
 }
 
-baz(); // <-- `baz` 的调用点
+baz() // <-- `baz` 的调用点
 ```
 
 在分析代码来寻找（从调用栈中）真正的调用点时要小心，因为它是影响`this`绑定的唯一因素。
 
-如果想调查`this	`绑定，可以使用开发者工具取得调用栈，之后从上到下找到第二个记录，那就是调用点
+如果想调查`this`绑定，可以使用开发者工具取得调用栈，之后从上到下找到第二个记录，那就是调用点
 
 ### 仅仅是规则
 
@@ -149,33 +148,33 @@ baz(); // <-- `baz` 的调用点
 
 ```js
 function foo() {
-	console.log( this.a );
+  console.log(this.a)
 }
 
-var a = 2;
+var a = 2
 
-foo(); // 2
+foo() // 2
 ```
 
 注意：
 
-1. 全局作用域中声明 `var a = 2`， 是全局对象的同名属性的同义词。
-2. 当`foo()`被调用时，`this.a`解析为全局变量`a`，因为在独立函数调用的情况下，`this`实施了 *默认绑定*，所以`this`指向全局对象。
+1.  全局作用域中声明 `var a = 2`， 是全局对象的同名属性的同义词。
+2.  当`foo()`被调用时，`this.a`解析为全局变量`a`，因为在独立函数调用的情况下，`this`实施了 _默认绑定_，所以`this`指向全局对象。
 
-为什么这里的`this`进行来默认绑定？因为在这段代码中`foo()`是被直接调用的，没有其他的我们将要展示的规则适用，所以这里 *默认绑定* 适用。
+为什么这里的`this`进行来默认绑定？因为在这段代码中`foo()`是被直接调用的，没有其他的我们将要展示的规则适用，所以这里 _默认绑定_ 适用。
 
 如果 `strict mode`在这里生效，那么对于默认绑定来说全局对象是不合法的，所以`this`被设置为`undefined`。
 
 ```js
 function foo() {
-	"use strict";
+  'use strict'
 
-	console.log( this.a );
+  console.log(this.a)
 }
 
-var a = 2;
+var a = 2
 
-foo(); // TypeError: `this` is `undefined`
+foo() // TypeError: `this` is `undefined`
 ```
 
 #### 2.隐含绑定（Implicit Binding）
@@ -184,15 +183,15 @@ foo(); // TypeError: `this` is `undefined`
 
 ```js
 function foo() {
-	console.log( this.a );
+  console.log(this.a)
 }
 
 var obj = {
-	a: 2,
-	foo: foo
-};
+  a: 2,
+  foo: foo
+}
 
-obj.foo(); // 2
+obj.foo() // 2
 ```
 
 首先有一点需要注意，`foo()` 被声明然后作为引用属性添加到`obj`上，无论`foo()`是否一开始就在`obj`上被声明，还是后来作为引用属性添加，这个函数都不被`obj`所真正拥有。
@@ -205,64 +204,63 @@ obj.foo(); // 2
 
 ```js
 function foo() {
-	console.log( this.a );
+  console.log(this.a)
 }
 
 var obj2 = {
-	a: 42,
-	foo: foo
-};
+  a: 42,
+  foo: foo
+}
 
 var obj1 = {
-	a: 2,
-	obj2: obj2
-};
+  a: 2,
+  obj2: obj2
+}
 
-obj1.obj2.foo(); // 42
+obj1.obj2.foo() // 42
 ```
-
 
 ##### 隐含丢失（Implicitly Lost）
 
-`this` 绑定最常让人沮丧的事情之一，<span style="text-decoration: underline">**就是当一个 *隐含绑定* 丢失了它的绑定，这通常意味着它会退回到默认绑定**</span>，根据 `strict mode` 的状态，其结果不是全局对象就是 `undefined`。
+`this` 绑定最常让人沮丧的事情之一，<span style="text-decoration: underline">**就是当一个 _隐含绑定_ 丢失了它的绑定，这通常意味着它会退回到默认绑定**</span>，根据 `strict mode` 的状态，其结果不是全局对象就是 `undefined`。
 
 考虑这段代码：
 
 ```js
 function foo() {
-	console.log( this.a );
+  console.log(this.a)
 }
 
 var obj = {
-	a: 2,
-	foo: foo
-};
+  a: 2,
+  foo: foo
+}
 
-var bar = obj.foo; // 函数引用！
+var bar = obj.foo // 函数引用！
 
-var a = "oops, global"; // `a` 也是一个全局对象的属性
+var a = 'oops, global' // `a` 也是一个全局对象的属性
 
-bar(); // "oops, global"
+bar() // "oops, global"
 ```
 
-尽管`bar`似乎是`obj.foo`的引用，但实际上它只是另一个`foo`本身的引用而已。另外，起作用的调用点是`bar()`，一个直白，毫无修饰的调用，所以 *默认绑定* 在这里适用。
+尽管`bar`似乎是`obj.foo`的引用，但实际上它只是另一个`foo`本身的引用而已。另外，起作用的调用点是`bar()`，一个直白，毫无修饰的调用，所以 _默认绑定_ 在这里适用。
 
 这种情况发生的更加微妙，更加常见的是考了传递一个回调函数时：
 
 ```js
 function fo() {
-	console.log(this.a);
+  console.log(this.a)
 }
 function doFoo(fn) {
-	// `fn`只不过是`foo`的另一个引用
-	fn()
+  // `fn`只不过是`foo`的另一个引用
+  fn()
 }
 var obj = {
-	a: 2,
-	foo: foo
+  a: 2,
+  foo: foo
 }
 
-var a = 'opps, global'; // a 也是一个全局对象的属性
+var a = 'opps, global' // a 也是一个全局对象的属性
 deFoo(obj.foo) // "oops, global"
 ```
 
@@ -274,19 +272,19 @@ deFoo(obj.foo) // "oops, global"
 
 ```js
 function foo() {
-	console.log(this.a)
+  console.log(this.a)
 }
 var obj = {
-	a:2
+  a: 2
 }
 foo.call(obj) // 2
 ```
 
-通过`foo.call()`使用 *明确绑定* 来调用`foo`,允许我们强制函数的`this`指向`obj`。
+通过`foo.call()`使用 _明确绑定_ 来调用`foo`,允许我们强制函数的`this`指向`obj`。
 
 如果传递一个简单基本类型（`string`，`boolean`，`number`）作为`this`绑定，那么这个基本类型值会被包装在它的对象类型中（分别是`new String(...)`，`new Boolean(...)`，`new Number(...)`）。这通常称为“封箱”。
 
->注：就`this`绑定的角度而言，`call`和`apply`是完全一样的，它们只是在处理参数的方式上不同。
+> 注：就`this`绑定的角度而言，`call`和`apply`是完全一样的，它们只是在处理参数的方式上不同。
 
 ##### 3.1 硬绑定（Hard Binding）
 
@@ -294,102 +292,102 @@ foo.call(obj) // 2
 
 ```js
 function foo() {
-	console.log( this.a );
+  console.log(this.a)
 }
 
 var obj = {
-	a: 2
-};
+  a: 2
+}
 
 var bar = function() {
-	foo.call( obj );
-};
+  foo.call(obj)
+}
 
-bar(); // 2
-setTimeout( bar, 100 ); // 2
+bar() // 2
+setTimeout(bar, 100) // 2
 
 // `bar` 将 `foo` 的 `this` 硬绑定到 `obj`
 // 所以它不可以被覆盖
-bar.call( window ); // 2
+bar.call(window) // 2
 ```
 
 创建函数`bar()`在它内部手动调用`foo.call(obj)`，由此强制`this`绑定到`obj`并调用`foo`。
 
-用 *硬绑定* 将一个函数包装起来的最典型方法，是将所有传入的参数和传出的返回值创建一个通道：
+用 _硬绑定_ 将一个函数包装起来的最典型方法，是将所有传入的参数和传出的返回值创建一个通道：
 
 ```js
 function foo(something) {
-	console.log( this.a, something );
-	return this.a + something;
+  console.log(this.a, something)
+  return this.a + something
 }
 
 var obj = {
-	a: 2
-};
+  a: 2
+}
 
 var bar = function() {
-	return foo.apply( obj, arguments );
-};
+  return foo.apply(obj, arguments)
+}
 
-var b = bar( 3 ); // 2 3
-console.log( b ); // 5
+var b = bar(3) // 2 3
+console.log(b) // 5
 ```
 
 另一种表达这种模式的方法是创建一个可复用的`bind`帮助函数：
 
 ```js
 function foo(something) {
-	console.log( this.a, something );
-	return this.a + something;
+  console.log(this.a, something)
+  return this.a + something
 }
 
 // 简单实现的 `bind` 帮助函数
 function bind(fn, obj) {
-	return function() {
-		return fn.apply( obj, arguments );
-	};
+  return function() {
+    return fn.apply(obj, arguments)
+  }
 }
 
 var obj = {
-	a: 2
-};
+  a: 2
+}
 
-var bar = bind( foo, obj );
+var bar = bind(foo, obj)
 
-var b = bar( 3 ); // 2 3
-console.log( b ); // 5
+var b = bar(3) // 2 3
+console.log(b) // 5
 ```
 
-由于 *硬绑定* 是一个如此常用的模式，因此ES5的内奸工具提供：`Function.prototype.bind`来硬绑定`this`。
+由于 _硬绑定_ 是一个如此常用的模式，因此 ES5 的内奸工具提供：`Function.prototype.bind`来硬绑定`this`。
 
 `bind(...)`返回一个硬编码的新函数，它使用你指定的`this`环境来调用原本的函数。
 
->注：在ES6中，`bind(...)`生成的硬绑定函数有一个名为`.name`的属性，它源自原始的 *目标函数（target function）*。举例来说：`bar = foo.bind(..)` 应该会有一个 `bar.name` 属性，它的值为 `"bound foo"`，这个值应当会显示在调用栈轨迹的函数调用名称中。
+> 注：在 ES6 中，`bind(...)`生成的硬绑定函数有一个名为`.name`的属性，它源自原始的 _目标函数（target function）_。举例来说：`bar = foo.bind(..)` 应该会有一个 `bar.name` 属性，它的值为 `"bound foo"`，这个值应当会显示在调用栈轨迹的函数调用名称中。
 
-##### 3.2 API调用“环境”
+##### 3.2 API 调用“环境”
 
-许多库中的函数和许多在js语言以及宿主环境中的内建函数，都提供一个可选参数，通常称为“环境（context）”，这种设计作为一种替代方案来确保回调函数使用特定的`this`而不必非得使用`bind(...)`。
+许多库中的函数和许多在 js 语言以及宿主环境中的内建函数，都提供一个可选参数，通常称为“环境（context）”，这种设计作为一种替代方案来确保回调函数使用特定的`this`而不必非得使用`bind(...)`。
 
 ```js
 function foo(el) {
-	console.log( el, this.id );
+  console.log(el, this.id)
 }
 
 var obj = {
-	id: "awesome"
-};
+  id: 'awesome'
+}
 
 // 使用 `obj` 作为 `this` 来调用 `foo(..)`
-[1, 2, 3].forEach( foo, obj ); // 1 awesome  2 awesome  3 awesome
+;[1, 2, 3].forEach(foo, obj) // 1 awesome  2 awesome  3 awesome
 ```
 
-**forEach的参数如下：** 
+**forEach 的参数如下：**
 
 `callback`：为数组中每个元素执行的函数，该函数接受三个参数：
 
-1. `currentValue`（当前值）：数组中正在处理的当前元素
-2. `index`（索引）：数组中正在处理的当前元素的索引
-3. `array`：`forEach()`方法正在操作的数组
+1.  `currentValue`（当前值）：数组中正在处理的当前元素
+2.  `index`（索引）：数组中正在处理的当前元素的索引
+3.  `array`：`forEach()`方法正在操作的数组
 
 `thisArg`（可选）：可选参数，当前执行回调函数时用做`this`的值。
 
@@ -397,36 +395,35 @@ var obj = {
 
 在传统的面向对象类语言中，“构造器”是附着在类上的一种特殊方法，当使用`new`操作符来初始化一个类时，这个类的构造器（constructor）就会被调用。
 
-在js中，构造器 **仅仅是一个函数**，它们偶然地与前置的 `new` 操作符一起调用。它们不依附于类，它们也不初始化一个类。它们甚至不是一种特殊的函数类型。它们本质上只是一般的函数，在被使用 `new` 来调用时改变了行为。
+在 js 中，构造器 **仅仅是一个函数**，它们偶然地与前置的 `new` 操作符一起调用。它们不依附于类，它们也不初始化一个类。它们甚至不是一种特殊的函数类型。它们本质上只是一般的函数，在被使用 `new` 来调用时改变了行为。
 
 <span style="color: red">**可以说任何函数，都可以在前面加上`new`来被调用，这使函数调用称为一个 构造其调用（constructor call）**。这是一个重要而微妙的区别：实际上不存在“构造器函数”这样的东西，而只有函数的构造器调用。</span>
 
 <span style="color: red">
 当在函数前面加入`new`调用时，也就是构造器调用时，下面这些事情会自动完成：
 
-1. 一个全新的对象会凭空创建（就是被构建）
-2. 这个新构建的对象会被接入原型链（`[[Prototype]]`-linked）
-3. 这个新构建的对象被设置为函数调用的`this`绑定
-4. 除非函数返回一个它自己的其他 **对象**，否则这被 `new` 调用的函数将 *自动* 返回这个新构建的对象
+1.  一个全新的对象会凭空创建（就是被构建）
+2.  这个新构建的对象会被接入原型链（`[[Prototype]]`-linked）
+3.  这个新构建的对象被设置为函数调用的`this`绑定
+4.  除非函数返回一个它自己的其他 **对象**，否则这被 `new` 调用的函数将 _自动_ 返回这个新构建的对象
 
 也就是说：
 
-以new操作符调用构造函数会经历以下四个步骤
+以 new 操作符调用构造函数会经历以下四个步骤
 
-1. 创建一个新对象
-2. 将构造函数的作用域赋给新对象（因此this就指向这个新对象）
-3. 执行构造函数中的代码（为这个新对象添加属性）
-4. 返回新对象
-</span>
+1.  创建一个新对象
+2.  将构造函数的作用域赋给新对象（因此 this 就指向这个新对象）
+3.  执行构造函数中的代码（为这个新对象添加属性）
+4.  返回新对象
+    </span>
 
 ```js
 function foo(a) {
-	this.a = a;
+  this.a = a
 }
-var bar = new foo( 2 );
-console.log( bar.a ); // 2
+var bar = new foo(2)
+console.log(bar.a) // 2
 ```
-
 
 ### 一切皆有顺序
 
@@ -434,23 +431,154 @@ console.log( bar.a ); // 2
 
 *默认绑定*是四种规则中优先权 **最低** 的。
 
-*隐含绑定* 和 *明确绑定* 的优先顺序可以用以下代码测试：
+_隐含绑定_ 和 _明确绑定_ 的优先顺序可以用以下代码测试：
 
 ```js
 function foo() {
-	console.log(this.a);
+  console.log(this.a)
 }
 var obj1 = {
-	a: 2,
-	foo: foo
+  a: 2,
+  foo: foo
 }
 var obj2 = {
-	a: 3,
-	foo: foo
+  a: 3,
+  foo: foo
 }
 
-obj1.foo();	// 2
-obj2.foo();	// 3
+obj1.foo() // 2
+obj2.foo() // 3
 
-obj1.foo.call(obj2);
+obj1.foo.call(obj2) // 3
+obj2.foo.call(obj1) // 2
 ```
+
+从以上运行结果可以看出 _明确绑定_ 的优先级高于 _隐含绑定_，这就是说要优先判断是否是 _明确绑定_。
+
+现在，我们只需要搞清楚 `new` 绑定 的优先级位于何处。
+
+```js
+function foo(something) {
+  this.a = something
+}
+
+var obj1 = {
+  foo: foo
+}
+
+var obj2 = {}
+
+obj1.foo(2)
+console.log(obj1.a) // 2
+
+obj1.foo.call(obj2, 3)
+console.log(obj2.a) // 3
+
+var bar = new obj1.foo(4)
+console.log(obj1.a) // 2
+console.log(bar.a) // 4
+```
+
+从以上可以看出 _new 绑定_ 的优先级高于 _隐含绑定_。
+
+**注意：** `new` 和 `call/apply` 不能同时使用，所以 `new foo.call(obj1)` 是不允许的，所以不能直接对比 _new 绑定_ 和 _隐含绑定_，但是依然可以使用 _硬绑定_ 来测试两个规则的优先级。
+
+在我们进入代码中探索之前，回想一下 硬绑定 物理上是如何工作的，也就是 `Function.prototype.bind(..)` 创建了一个新的包装函数，这个函数被硬编码为忽略它自己的 `this` 绑定（不管它是什么），转而手动使用我们提供的。
+
+因此，这似乎看起来很明显，硬绑定（明确绑定的一种）的优先级要比 `new` 绑定 高，而且不能被 `new` 覆盖。
+
+检验一下：
+
+```js
+function foo(something) {
+  this.a = something
+}
+
+var obj1 = {}
+
+var bar = foo.bind(obj1)
+bar(2)
+console.log(obj1.a) // 2
+
+var baz = new bar(3)
+console.log(obj1.a) // 2
+console.log(baz.a) // 3
+```
+
+从以上运行结果看，_new 绑定_ 没有被 _硬绑定_ 覆盖。因为 `new` 创建了一个名为 `baz` 的新对象。
+
+ES5 内建`Function.prototype.bind(...)`的`polyfill`如下：
+
+```js
+if (!Function.prototype.bind) {
+  Function.prototype.bind = function(oThis) {
+    if (typeof this !== 'function') {
+      // 可能的与 ECMAScript 5 内部的 IsCallable 函数最接近的东西，
+      throw new TypeError(
+        'Function.prototype.bind - what ' +
+          'is trying to be bound is not callable'
+      )
+    }
+
+    var aArgs = Array.prototype.slice.call(arguments, 1),
+      fToBind = this,
+      fNOP = function() {},
+      fBound = function() {
+        return fToBind.apply(
+          this instanceof fNOP && oThis ? this : oThis,
+          aArgs.concat(Array.prototype.slice.call(arguments))
+        )
+      }
+
+    fNOP.prototype = this.prototype
+    fBound.prototype = new fNOP()
+
+    return fBound
+  }
+}
+```
+
+**注意：**就将与`new`一起使用的硬绑定函数而言，上面的`bind(...)` polyfill 与 ES5 中内建的`bind(...)`是不同的。因为 polyfill 不能像内建工具那样，没有`.prototype`就能创建函数，这里使用一些微妙而间接的方法近似模拟相同的行为。如果打算将 _硬绑定_ 与 *new 绑定*一起使用而且依赖这个 polyfill，应该多加小心。
+
+允许`new`进行覆盖的部分是这里：
+
+```js
+this instanceof fNOP && oThis ? this : oThis
+
+// ... 和：
+
+fNOP.prototype = this.prototype
+fBound.prototype = new fNOP()
+```
+
+这里判断硬绑定函数是否通过`new`被调用的（导致一个新构建的对象作为它的`this`），如果是，它就用那个新构建的`this`而非先前那个`this`指定的 _硬绑定_
+
+<span style="text-decoration: underline">`new` 覆盖 _硬绑定_ 这种行为 可以创建一个 **预先设置一部分或所有的参数的函数（这个函数可以与`new`一起使用来构建）**，该函数实质上忽略了 `this` 的 _硬绑定_。`bind(...)`的一个能力是，任何在第一个`this`绑定参数之后被传入的参数，默认地作为当前函数的标准参数（技术上称为“局部应用（partial application）”，是一种“柯里化（currying）”）。使用`bind`函数并 **不执行。** </span>
+
+例如：
+
+```js
+function foo(p1, p2) {
+  this.val = p1 + p2
+}
+
+// 在这里使用 `null` 是因为在这种场景下我们不关心 `this` 的硬绑定
+// 而且反正它将会被 `new` 调用覆盖掉！
+var bar = foo.bind(null, 'p1')
+
+var baz = new bar('p2')
+
+console.log(baz) // foo {val: "p1p2"}
+baz.val // p1p2
+```
+
+以上代码中 `var bar = foo.bind(null, 'p1')` 给函数 `foo` 传入部分参数（此时参数`p1`被赋值为字符串'p1'，`p2`为`undefined`），这里`this` 的 _硬绑定_ 被忽略；`var baz = new bar('p2')`继续赋值`p2`，设置为字符串p2。
+
+#### 判定`this`
+
+现在可以按照优先循序来总结从函数调用的调用点判定`this`的规则。按照这个顺序，在规则适用的第一个地方停下。
+
+1. 函数是否通过 `new` 被调用（**new 绑定**） ，如果是，`this`是新构建的对象。`var bar = new foo()`
+2. 函数是否通过 `call` 或 `apply` 被调用（**明确绑定**），甚至是隐藏在`bind` *硬绑定* 之中。如果是，`this`就是那个被明确指定的对象。`var bar = foo.call(obj2)`
+3. 函数是否通过环境对象（也称为拥有者或容器对象）被调用（**隐含绑定**）。如果是，`this`就是那个环境对象。`var bar = obj1.foo()`
+4. 如果以上情况都不符合，则使用默认的`this`（**默认绑定**）。如果在`strict mode`下，就是`undefined`，否则就是`global`对象。`var bar = foo()`
