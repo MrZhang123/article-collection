@@ -582,3 +582,59 @@ baz.val // p1p2
 2. 函数是否通过 `call` 或 `apply` 被调用（**明确绑定**），甚至是隐藏在`bind` *硬绑定* 之中。如果是，`this`就是那个被明确指定的对象。`var bar = foo.call(obj2)`
 3. 函数是否通过环境对象（也称为拥有者或容器对象）被调用（**隐含绑定**）。如果是，`this`就是那个环境对象。`var bar = obj1.foo()`
 4. 如果以上情况都不符合，则使用默认的`this`（**默认绑定**）。如果在`strict mode`下，就是`undefined`，否则就是`global`对象。`var bar = foo()`
+
+即优先循序如下：
+
+new 绑定 >  明确绑定 > 隐含绑定 > 默认绑定
+
+### 绑定的特例
+
+#### 被忽略的`this`
+
+如果传递`null`或`undefined`作为`call、apply`或`bind`的`this`绑定参数，这些值就会被忽略，此时 *默认绑定* 适用于该调用。
+
+这种操作的作用：
+
+一种很常见的做法是，使用`apply(...)`来将一个数组散开，从而作为函数调用的参数。相似地，`bind(...)`可以柯里化参数（预设值）（即给函数传递部分参数）。
+
+```js
+function foo(a,b) {
+	console.log( "a:" + a + ", b:" + b );
+}
+
+// 将数组散开作为参数
+foo.apply( null, [2, 3] ); // a:2, b:3
+
+// 用 `bind(..)` 进行柯里化
+var bar = foo.bind( null, 2 );
+bar( 3 ); // a:2, b:3
+```
+
+将数组散开在ES6中有扩展操作符`...`，但是 **柯里化**在ES6中并没有语法上的替代品。
+
+因为不关心`this`绑定而使用`null`会又一些潜在的问题，如果这样处理一些调用函数，可能会让调用函数的`this`指向 `global` 对象（在浏览器中是 `window`）。
+
+##### 更安全的`this`
+
+更加安全的做法是为`this`传递一个特殊创建好的对象，这个对象保证不产生副作用，这个对象其实就是一个完全为空，没有委托的对象。
+
+创建 **完全为空的对象** 的最简单方法是 `Object.create(null)`。`Object.create(null)` 与 `{}`很相似，但是没有指向 `Object.prototype` 的委托，所有它比 `{}` 空的更彻底。
+
+```JS
+function foo(a,b) {
+	console.log( "a:" + a + ", b:" + b );
+}
+
+// 我们的 DMZ 空对象
+var ø = Object.create( null );
+
+// 将数组散开作为参数
+foo.apply( ø, [2, 3] ); // a:2, b:3
+
+// 用 `bind(..)` 进行 currying
+var bar = foo.bind( ø, 2 );
+bar( 3 ); // a:2, b:3
+```
+
+### 间接
+
