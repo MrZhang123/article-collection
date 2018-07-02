@@ -636,5 +636,31 @@ var bar = foo.bind( ø, 2 );
 bar( 3 ); // a:2, b:3
 ```
 
-### 间接
+##  词法 `this`
 
+ES6 引入了一种不适用于这些规则特殊的函数：箭头函数`（arrow-function）`。
+
+与四种标准的`this`规则不同的是，箭头函数从 _封闭它的（函数或全局）作用域开始绑定`this`_。
+
+```js
+function foo() {
+  // 返回一个箭头函数
+	return (a) => {
+    // 这里的 `this` 是词法上从 `foo()` 采用的
+		console.log( this.a );
+	};
+}
+
+var obj1 = {
+	a: 2
+};
+
+var obj2 = {
+	a: 3
+};
+
+var bar = foo.call( obj1 );
+bar.call( obj2 ); // 2, 不是3!
+```
+
+在`foo()`中创建的箭头函数在 _词法上捕获`foo()`被调用时的`this`_。因为`foo()`被`this`绑定到`obj1`，`bar`也会被`this`绑定到`obj1`，一个箭头函数的词法绑定不能被覆盖（即使是`new`也不能覆盖）。
