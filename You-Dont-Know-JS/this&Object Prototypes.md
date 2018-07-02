@@ -664,3 +664,63 @@ bar.call( obj2 ); // 2, 不是3!
 ```
 
 在`foo()`中创建的箭头函数在 _词法上捕获`foo()`被调用时的`this`_。因为`foo()`被`this`绑定到`obj1`，`bar`也会被`this`绑定到`obj1`，一个箭头函数的词法绑定不能被覆盖（即使是`new`也不能覆盖）。
+
+# 第三章：对象
+
+## 语法
+
+对象的两种形式：
+
+* 声明（字面）形式
+
+```js
+var myObj = {
+	key: value
+	// ...
+};
+```
+
+* 构造形式
+
+```js
+var myObj = new Object();
+myObj.key = value;
+```
+
+## 类型
+
+JS六种主要类型：
+
+* `string`
+* `number`
+* `boolean`
+* `null`
+* `undefined`
+* `object`
+
+注意 简单基本类型 （`string`、`number`、`boolean`、`null`、和 `undefined`）自身 不是 `object`。`null` 有时会被当成一个对象类型，但是这种误解源自于一个语言中的 Bug，它使得 `typeof null` 错误地（而且令人困惑地）返回字符串 `"object"`。实际上，null 是它自己的基本类型。
+
+<span style="color: red">**一个常见的错误论断是“JavaScript中的一切都是对象”。这明显是不对的。**</span>
+
+JS中存在几种特殊的对象子类型，我们称之为 _复杂基本类型_，包括`function`和`Array`。
+
+### 内建对象
+
+* `String`
+* `Number`
+* `Boolean`
+* `Object`
+* `Function`
+* `Array`
+* `Date`
+* `RegExp`
+* `Error`
+
+这些内建对象的每一个都是可以通过`new`操作符调用，其结果是一个新的 _构建_ 的相应子类型。
+
+考察 `object` 的子类型可以使用：
+
+```js
+var arr = [1,2]
+Object.prototype.toString.call( arr );	// [object Array]
+```
