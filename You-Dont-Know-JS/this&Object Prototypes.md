@@ -99,6 +99,8 @@ foo() //undefined
 
 所以，`this`是一个完全根据`调用点`（函数是如何被调用的）而为每次函数调用建立的绑定。
 
+------------
+
 # 第二章: `this`豁然开朗！
 
 ## 调用点（Call-site）
@@ -682,6 +684,8 @@ bar.call( obj2 ); // 2, 不是3!
 
 在`foo()`中创建的箭头函数在 _词法上捕获`foo()`被调用时的`this`_。因为`foo()`被`this`绑定到`obj1`，`bar`也会被`this`绑定到`obj1`，一个箭头函数的词法绑定不能被覆盖（即使是`new`也不能覆盖）。
 
+------------
+
 # 第三章：对象
 
 ## 语法
@@ -808,4 +812,112 @@ myArray[3];		// "baz"
 
 ### 复制对象
 
-关于对象的 _拷贝_，首先要理解是一个 _深拷贝（deep）_ 还是一个 _浅拷贝（shallow）_
+```JS
+function anotherFunction() { /*..*/ }
+var anotherObject = {
+	c: true
+};
+var anotherArray = [];
+var myObject = {
+	a: 2,
+	b: anotherObject,	// 引用，不是拷贝!
+	c: anotherArray,	// 又一个引用!
+	d: anotherFunction
+};
+anotherArray.push( anotherObject, myObject );
+```
+
+关于对象的 _拷贝_，首先要理解是一个 _深拷贝（deep）_ 还是一个 _浅拷贝（shallow）_。
+
+一个 _浅拷贝（shallow copy）_ 会得到一个新的对象。它的 `a` 是值 `2` 的拷贝，但 `b`、`c` 和 `d` 属性 **仅仅是引用**，它们指向被拷贝对象中引用的相同位置。一个 _深拷贝（deep copy）_ 不仅复制 `myObject`，还会复制 `anotherObject`，`anotherArray`。
+
+一个简单的 _深拷贝（deep copy）_ 方案是，JSON 安全的对象（也就是，可以被序列化为一个 JSON 字符串，之后还可以被重新解析为拥有相同的结构和值的对象）可以简单地这样 复制：
+
+```js
+var newObj = JSON.parse( JSON.stringify( someObj ) );
+```
+
+浅拷贝相当易懂，而且没有那么多问题，所以ES6定义了 `Object.assign(...)`。`Object.assign(...)` 接收 _目标对象_ 作为第一个参数，然后是一个或多个 _源_ 对象作为后续参数。它会在 _源_ 对象上迭代所有的 _可枚举属性（enumerable）_ ，_直接拥有的键（owned keys）_，并把它们拷贝到 _目标对象上（仅通过 `=` 赋值）_。
+
+<span style="color: red">**注意：**</span>在 `Object.assign(...)` 发生的复制是单纯的 `=` 式赋值，所以在源对象属性的特殊性质（比如 `writable`） 在目标对象上 **都不会做保留**。
+
+### 属性描述符（Property Descriptors）
+
+对象的属性描述符包括：可写性（Writable），可配置性（Configurable），可枚举性（Enumerable）
+
+可以使用`defineProperty(...)`修改属性描述符
+
+可配置性（Configurable）默认是`true`，且修改是不可逆的，即如果设置`configurable:false`，则无法再设置回`true`，且此时`delete`会操作失败。
+
+### 不可变性（Immutability）
+
+ES5加入了让属性或对象设置不可变的功能支持。
+
+<span style="color: red">但是需要注意一点：</span>所有这些方法创建的都是浅不可变性，即仅仅影响对象和它的直属属性。如果对象拥有对其他对象（数组，对象，函数等）的引用，那个对象的内容依旧可变。
+
+#### 对象常量（Object Constant）
+
+通过`writable:false`与`configurable:false`组合，可以创建一个对象常量（不能被改变，重新定义或删除）。
+
+#### 防止扩展（Prevent Extensions）
+
+如果想防止一个对象被添加新的属性，但是另一个方面保留其存在的对象属性，可以调用`Object.preventExtensions(...)`。
+
+#### 封印（Seal）
+
+`Object.seal(...)`创建一个“封印”对象，这意味着它实质上在当前的对象上调用`Object.preventExtensions(...)`，同时也将所有的既存属性标记为`configurable:false`（不可配置），所以此时既不能添加更多的属性，也不能重新配置或删除既存属性（但是可以修改它们的值）。
+
+```js
+const object1 = {
+  property1: 42
+};
+
+Object.seal(object1);
+object1.property1 = 33;
+console.log(object1.property1);
+// expected output: 33
+
+delete object1.property1; // cannot delete when sealed
+console.log(object1.property1);
+// expected output: 33
+```
+
+#### 冻结（Freeze）
+
+`Object.freeze()` 方法可以冻结一个对象，冻结指的是不能向这个对象添加新的属性，不能修改其已有属性的值，不能删除已有属性，以及不能修改该对象已有属性的可枚举性、可配置性、可写性。也就是说，这个对象永远是不可变的。该方法返回被冻结的对象。
+
+### [[GET]]
+
+```js
+var myObject = {
+	a: 2
+};
+myObject.a; // 2
+```
+
+以上代码访问`myObject`的一个属性`a`。
+
+从语言规范上讲，上吗的代码实际上在`myObject`上执行了一个`[[GET]]`操作（像是`[[GET]]()`操作）。
+
+对一个对象进行默认的内建`[[GET]]`操作，会首先检查对象，寻找一个拥有被请求的名称的属性，如果找到，就返回相应的值。如果`[[GET]]`操作通过热河方法都找不到被请求的属性值，则返回`undefined`。
+
+### [[Put]]
+
+给一个对象的属性赋值，将会在这个对象上调用 `[[Put]]` 来设置或创建这个属性。
+
+调用`[[Put]]`时，它会根据几个因素表现不同的行为，包括（影响最大的）属性是否已经在对象中存在了。
+
+如果属性存在，`[[Put]]` 算法将会大致检查：
+
+1. 这个属性是访问器描述符吗？如果是，而且是 `setter`，就调用 `setter`。
+2. 这个属性是 `writable` 为 `false` 数据描述符吗？如果是，在非 `strict mode` 下无声地失败，或者在 `strict mode` 下抛出 `TypeError`。
+3. 否则，像平常一样设置既存属性的值。
+
+### Getters 与 Setters
+
+ES5 引入了一个方法来覆盖默认操作的一部分，但不是在对象级别而是针对每个属性，就是通过 getters 和 setters。
+
+* Getter 是实际上调用一个隐藏函数来取得值的属性。
+* Setter 是实际上调用一个隐藏函数来设置值的属性。
+
+
