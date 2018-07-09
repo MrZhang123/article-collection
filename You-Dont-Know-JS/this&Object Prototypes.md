@@ -920,4 +920,141 @@ ES5 引入了一个方法来覆盖默认操作的一部分，但不是在对象�
 * Getter 是实际上调用一个隐藏函数来取得值的属性。
 * Setter 是实际上调用一个隐藏函数来设置值的属性。
 
+#### 存在性（Existence）
 
+可以使用`in`或者`hasOwnProperty`检查一个对象是否拥有特定的属性，而不必取得那个值：
+
+```js
+var myObject = {
+	a: 2
+};
+
+("a" in myObject);				// true
+("b" in myObject);				// false
+
+myObject.hasOwnProperty( "a" );	// true
+myObject.hasOwnProperty( "b" );	// false
+```
+
+二者区别在于：
+
+* `in`会检查属性是否存在于 **对象** 或 存在于 `[[Prototype]]` 链对象遍历的更高层中。
+* `hasOwnProperty(..)`仅仅检查对象是否拥有属性，不会检查 `[[Prototype]]` 链。
+
+##### 枚举（Enumeration）
+
+当可枚举性（enumerability）设置成`false`时候，使用`for...in`循环无法检查到该属性。
+
+区分属性是可枚举属性还是不可枚举属性有两种方法：
+
+1.使用`for...in`循环，该属性是否能出现
+
+```js
+var myObject = { };
+
+Object.defineProperty(
+	myObject,
+	"a",
+	// 使 `a` 可枚举，如一般情况
+	{ enumerable: true, value: 2 }
+);
+
+Object.defineProperty(
+	myObject,
+	"b",
+	// 使 `b` 不可枚举
+	{ enumerable: false, value: 3 }
+);
+
+myObject.b; // 3
+("b" in myObject); // true
+myObject.hasOwnProperty( "b" ); // true
+
+// .......
+
+for (var k in myObject) {
+	console.log( k, myObject[k] );
+}
+// "a" 2
+```
+
+2.使用`propertyIsEnumerable(..)`检测
+
+`propertyIsEnumerable(..)` 测试一个给定的属性名是否直 接存 在于对象上，并且是 `enumerable:true`。
+
+`Object.keys(..)` 返回一个所有 **可枚举属性** 的数组，而 `Object.getOwnPropertyNames(..)` 返回一个 **所有属性** 的数组，不论能不能枚举。
+
+```js
+var myObject = { };
+
+Object.defineProperty(
+	myObject,
+	"a",
+	// 使 `a` 可枚举，如一般情况
+	{ enumerable: true, value: 2 }
+);
+
+Object.defineProperty(
+	myObject,
+	"b",
+	// 使 `b` 不可枚举
+	{ enumerable: false, value: 3 }
+);
+
+myObject.propertyIsEnumerable( "a" ); // true
+myObject.propertyIsEnumerable( "b" ); // false
+
+Object.keys( myObject ); // ["a"]
+Object.getOwnPropertyNames( myObject ); // ["a", "b"]
+```
+
+## 迭代（Iteration）
+
+ES6加入有用的`for...of`循环语法，用来迭代数组（和对象，如果这个对象有定义的迭代器）。
+
+`for...of`循环要求被迭代的东西提供一个迭代器对象（从语言规范中叫做`@@iterator`得默认内部函数那里得到），每次循环都调用一次这个迭代器对象的`next()`方法，迭代循环的内容就是这些连续的返回值。
+
+<span style="color: red">注意：</span>`@@iterator` 本身不是迭代器对象， 而是一个返回迭代器对象的方法。
+
+因为数组有内建的`@@iterator`，所以可以在`for...of`中自动迭代，但是 **普通对象没有内建的 `@@iterator`**。
+
+但是可以为想要迭代的对象定义默认`@@iterator`， <span style="color: red">为对象添加`@@iterator`代码如下：</span>
+
+```js
+var myObject = {
+	a: 'a',
+	b: 'b'
+};
+
+Object.defineProperty( myObject, Symbol.iterator, {
+	enumerable: false,
+	writable: false,
+	configurable: true,
+	value: function() {
+		var o = this;
+		var idx = 0;
+		var ks = Object.keys( o );
+		return {
+			next: function() {
+				return {
+					value: o[ks[idx++]],
+					done: (idx > ks.length)
+				};
+			}
+		};
+	}
+} );
+
+// 手动迭代 `myObject`
+var it = myObject[Symbol.iterator]();
+it.next(); // { value:a, done:false }
+it.next(); // { value:b, done:false }
+it.next(); // { value:undefined, done:true }
+
+// 用 `for..of` 迭代 `myObject`
+for (var v of myObject) {
+	console.log( v );
+}
+// a
+// b
+```
