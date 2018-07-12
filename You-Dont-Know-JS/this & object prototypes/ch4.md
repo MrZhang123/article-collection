@@ -62,5 +62,47 @@ JS中并没有多重继承，但是开发者会用各种方法来模拟多重继
 
 ## 混合（Mixin）
 
+**JS中没有“类”**可以拿来实例化，只有对象。而且对象也不会被拷贝到另一个对象中，而是被链接在一起。
+
+### 明确的 Mixin（Explicit Mixins）
+
+JS不会自动地将行为从一个对象拷贝到另一个对象，我们可以建造一个工具来手动拷贝。这样的工具经常被许多库/框架称为`extend(..)`。便于说明，我们这里叫它`mixin(..)`.
+
+```js
+// 大幅简化的 `mixin(..)` 示例：
+function mixin( sourceObj, targetObj ) {
+	for (var key in sourceObj) {
+		// 仅拷贝非既存内容
+		if (!(key in targetObj)) {
+			targetObj[key] = sourceObj[key];
+		}
+	}
+
+	return targetObj;
+}
+
+var Vehicle = {
+	engines: 1,
+
+	ignition: function() {
+		console.log( "Turning on my engine." );
+	},
+
+	drive: function() {
+		this.ignition();
+		console.log( "Steering and moving forward!" );
+	}
+};
+
+var Car = mixin( Vehicle, {
+	wheels: 4,
+
+	drive: function() {
+		Vehicle.drive.call( this );
+		console.log( "Rolling on all " + this.wheels + " wheels!" );
+	}
+} );
+```
+
 
 
