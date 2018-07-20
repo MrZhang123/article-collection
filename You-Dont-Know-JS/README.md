@@ -17,6 +17,8 @@ You-Dont-Know-JS仓库链接：[https://github.com/getify/You-Dont-Know-JS](http
 
 ## this与对象原型
 
-- [this 是什么](https://github.com/MrZhang123/article-collection/blob/master/You-Dont-Know-JS/this%26Object%20Prototypes/ch1.md)
-- [this 豁然开朗！](https://github.com/MrZhang123/article-collection/blob/master/You-Dont-Know-JS/this%26Object%20Prototypes/ch2.md)
-- [对象](https://github.com/MrZhang123/article-collection/blob/master/You-Dont-Know-JS/this%26Object%20Prototypes/ch3.md)
+- [this 是什么](https://github.com/MrZhang123/article-collection/blob/master/You-Dont-Know-JS/this%20%26%20object%20prototypes/ch1.md)
+- [this 豁然开朗！](https://github.com/MrZhang123/article-collection/blob/master/You-Dont-Know-JS/this%20%26%20object%20prototypes/ch2.md)
+- [对象](https://github.com/MrZhang123/article-collection/blob/master/You-Dont-Know-JS/this%20%26%20object%20prototypes/ch3.md)
+- [混合（淆）“类”的对象](https://github.com/MrZhang123/article-collection/blob/master/You-Dont-Know-JS/this%20%26%20object%20prototypes/ch4.md)
+- [原型（Prototype）](https://github.com/MrZhang123/article-collection/blob/master/You-Dont-Know-JS/this%20%26%20object%20prototypes/ch5.md)
