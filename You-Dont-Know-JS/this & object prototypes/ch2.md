@@ -257,7 +257,7 @@ var b = bar(3) // 2 3
 console.log(b) // 5
 ```
 
-由于 _硬绑定_ 是一个如此常用的模式，因此 ES5 的内奸工具提供：`Function.prototype.bind`来硬绑定`this`。
+由于 _硬绑定_ 是一个如此常用的模式，因此 ES5 的内建工具提供：`Function.prototype.bind`来硬绑定`this`。
 
 `bind(...)`返回一个硬编码的新函数，它使用你指定的`this`环境来调用原本的函数。
 
