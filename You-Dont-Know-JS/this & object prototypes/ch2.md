@@ -299,6 +299,7 @@ var obj = {
 <span style="color: red">**可以说任何函数，都可以在前面加上`new`来被调用，这使函数调用称为一个 构造其调用（constructor call）**。这是一个重要而微妙的区别：实际上不存在“构造器函数”这样的东西，而只有函数的构造器调用。</span>
 
 <span style="color: red">
+
 当在函数前面加入`new`调用时，也就是构造器调用时，下面这些事情会自动完成：
 
 1.  一个全新的对象会凭空创建（就是被构建）
@@ -314,7 +315,8 @@ var obj = {
 2.  将构造函数的作用域赋给新对象（因此 this 就指向这个新对象）
 3.  执行构造函数中的代码（为这个新对象添加属性）
 4.  返回新对象
-    </span>
+
+</span>
 
 ```js
 function foo(a) {
@@ -380,7 +382,7 @@ console.log(bar.a) // 4
 
 从以上可以看出 _new 绑定_ 的优先级高于 _隐含绑定_。
 
-**注意：**   `new` 和 `call/apply` 不能同时使用，所以 `new foo.call(obj1)` 是不允许的，所以不能直接对比 _new 绑定_ 和 _隐含绑定_，但是依然可以使用 _硬绑定_ 来测试两个规则的优先级。
+**注意：** `new` 和 `call/apply` 不能同时使用，所以 `new foo.call(obj1)` 是不允许的，所以不能直接对比 _new 绑定_ 和 _隐含绑定_，但是依然可以使用 _硬绑定_ 来测试两个规则的优先级。
 
 在我们进入代码中探索之前，回想一下 硬绑定 物理上是如何工作的，也就是 `Function.prototype.bind(..)` 创建了一个新的包装函数，这个函数被硬编码为忽略它自己的 `this` 绑定（不管它是什么），转而手动使用我们提供的。
 
@@ -414,8 +416,7 @@ if (!Function.prototype.bind) {
     if (typeof this !== 'function') {
       // 可能的与 ECMAScript 5 内部的 IsCallable 函数最接近的东西，
       throw new TypeError(
-        'Function.prototype.bind - what ' +
-          'is trying to be bound is not callable'
+        'Function.prototype.bind - what ' + 'is trying to be bound is not callable'
       )
     }
 
@@ -471,45 +472,45 @@ console.log(baz) // foo {val: "p1p2"}
 baz.val // p1p2
 ```
 
-以上代码中 `var bar = foo.bind(null, 'p1')` 给函数 `foo` 传入部分参数（此时参数`p1`被赋值为字符串'p1'，`p2`为`undefined`），这里`this` 的 _硬绑定_ 被忽略；`var baz = new bar('p2')`继续赋值`p2`，设置为字符串p2。
+以上代码中 `var bar = foo.bind(null, 'p1')` 给函数 `foo` 传入部分参数（此时参数`p1`被赋值为字符串'p1'，`p2`为`undefined`），这里`this` 的 _硬绑定_ 被忽略；`var baz = new bar('p2')`继续赋值`p2`，设置为字符串 p2。
 
 ### 判定`this`
 
 现在可以按照优先循序来总结从函数调用的调用点判定`this`的规则。按照这个顺序，在规则适用的第一个地方停下。
 
 1. 函数是否通过 `new` 被调用（**new 绑定**） ，如果是，`this`是新构建的对象。`var bar = new foo()`
-2. 函数是否通过 `call` 或 `apply` 被调用（**明确绑定**），甚至是隐藏在`bind` *硬绑定* 之中。如果是，`this`就是那个被明确指定的对象。`var bar = foo.call(obj2)`
+2. 函数是否通过 `call` 或 `apply` 被调用（**明确绑定**），甚至是隐藏在`bind` _硬绑定_ 之中。如果是，`this`就是那个被明确指定的对象。`var bar = foo.call(obj2)`
 3. 函数是否通过环境对象（也称为拥有者或容器对象）被调用（**隐含绑定**）。如果是，`this`就是那个环境对象。`var bar = obj1.foo()`
 4. 如果以上情况都不符合，则使用默认的`this`（**默认绑定**）。如果在`strict mode`下，就是`undefined`，否则就是`global`对象。`var bar = foo()`
 
 即优先循序如下：
 
-new 绑定 >  明确绑定 > 隐含绑定 > 默认绑定
+new 绑定 > 明确绑定 > 隐含绑定 > 默认绑定
 
 ## 绑定的特例
 
 ### 被忽略的`this`
 
-如果传递`null`或`undefined`作为`call、apply`或`bind`的`this`绑定参数，这些值就会被忽略，此时 *默认绑定* 适用于该调用。
+如果传递`null`或`undefined`作为`call、apply`或`bind`的`this`绑定参数，这些值就会被忽略，此时 _默认绑定_ 适用于该调用。
 
 这种操作的作用：
 
 一种很常见的做法是，使用`apply(...)`来将一个数组散开，从而作为函数调用的参数。相似地，`bind(...)`可以柯里化参数（预设值）（即给函数传递部分参数）。
 
 ```js
-function foo(a,b) {
-	console.log( "a:" + a + ", b:" + b );
+function foo(a, b) {
+  console.log('a:' + a + ', b:' + b)
 }
 
 // 将数组散开作为参数
-foo.apply( null, [2, 3] ); // a:2, b:3
+foo.apply(null, [2, 3]) // a:2, b:3
 
 // 用 `bind(..)` 进行柯里化
-var bar = foo.bind( null, 2 );
-bar( 3 ); // a:2, b:3
+var bar = foo.bind(null, 2)
+bar(3) // a:2, b:3
 ```
 
-将数组散开在ES6中有扩展操作符`...`，但是 **柯里化**在ES6中并没有语法上的替代品。
+将数组散开在 ES6 中有扩展操作符`...`，但是 **柯里化**在 ES6 中并没有语法上的替代品。
 
 因为不关心`this`绑定而使用`null`会又一些潜在的问题，如果这样处理一些调用函数，可能会让调用函数的`this`指向 `global` 对象（在浏览器中是 `window`）。
 
@@ -539,20 +540,20 @@ bar( 3 ); // a:2, b:3
 
 ```js
 function foo() {
-	console.log( this.a );
+  console.log(this.a)
 }
 
-var a = 2;
-var o = { a: 3, foo: foo };
-var p = { a: 4 };
+var a = 2
+var o = { a: 3, foo: foo }
+var p = { a: 4 }
 
-o.foo(); // 3
-(p.foo = o.foo)(); // 2
+o.foo() // 3
+;(p.foo = o.foo)() // 2
 ```
 
 赋值表达式`p.foo = o.foo`的结果值刚好是指向底层函数对象的引用。所以，此时的起调点就是`foo()`，而非`p.foo()`或`o.foo()`。所以 _默认绑定适用_。
 
-###  词法 `this`
+### 词法 `this`
 
 ES6 引入了一种不适用于这些规则特殊的函数：箭头函数`（arrow-function）`。
 
@@ -561,22 +562,22 @@ ES6 引入了一种不适用于这些规则特殊的函数：箭头函数`（arr
 ```js
 function foo() {
   // 返回一个箭头函数
-	return (a) => {
+  return a => {
     // 这里的 `this` 是词法上从 `foo()` 采用的
-		console.log( this.a );
-	};
+    console.log(this.a)
+  }
 }
 
 var obj1 = {
-	a: 2
-};
+  a: 2
+}
 
 var obj2 = {
-	a: 3
-};
+  a: 3
+}
 
-var bar = foo.call( obj1 );
-bar.call( obj2 ); // 2, 不是3!
+var bar = foo.call(obj1)
+bar.call(obj2) // 2, 不是3!
 ```
 
 在`foo()`中创建的箭头函数在 _词法上捕获`foo()`被调用时的`this`_。因为`foo()`被`this`绑定到`obj1`，`bar`也会被`this`绑定到`obj1`，一个箭头函数的词法绑定不能被覆盖（即使是`new`也不能覆盖）。
